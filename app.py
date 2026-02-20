@@ -116,3 +116,4 @@ else:
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df)
                 st.rerun()
+
