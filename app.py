@@ -8,7 +8,7 @@ st.set_page_config(page_title="Supply Chain Pro", layout="wide")
 st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
 
 # গুগল শীট কানেকশন
-SHEET_URL = "আপনার_গুগল_শীট_লিঙ্ক" 
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1ilP26HZxJ6PviYS_dvR9S4qyr62mIttO_32QUO6O2Ro/edit?usp=sharing" 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 try:
@@ -87,4 +87,5 @@ else:
         for idx, row in deliv.iterrows():
             if st.button(f"✅ Received (ID {row['ID']})"):
                 df.at[idx, 'Status'] = "✅ Job Done"
+
                 conn.update(spreadsheet=SHEET_URL, data=df); st.rerun()
