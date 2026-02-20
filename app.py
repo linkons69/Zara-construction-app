@@ -2,7 +2,7 @@ import streamlit as st
 from st_gsheets_connection import GSheetsConnection
 import pandas as pd
 from datetime import datetime
-from fpdf import FPDF
+from fpdf2 import FPDF
 
 st.set_page_config(page_title="Supply Chain Pro", layout="wide")
 st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
@@ -89,5 +89,6 @@ else:
                 df.at[idx, 'Status'] = "✅ Job Done"
 
                 conn.update(spreadsheet=SHEET_URL, data=df); st.rerun()
+
 
 
