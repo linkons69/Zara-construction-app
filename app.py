@@ -1,5 +1,4 @@
 import streamlit as st
-from st_gsheets_connection import GSheetsConnection
 import pandas as pd
 from datetime import datetime
 from fpdf import FPDF
@@ -92,4 +91,5 @@ else:
             if st.button(f"✅ Received (ID {row['ID']})"):
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df); st.rerun()
+
 
