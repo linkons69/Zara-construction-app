@@ -9,8 +9,7 @@ st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চে
 
 # ২. গুগল শীট কানেকশন
 # নোট: লিঙ্কটির শেষে কোনো স্পেস রাখবেন না
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ilP26HZxJ6PviYS_dvR9S4qyr62mIttO_32QUO6O2Ro/edit?usp=sharing"
-conn = st.connection("gsheets", type=GSheetsConnection)
+
 
 # ডাটা লোড করা
 try:
@@ -122,3 +121,4 @@ else:
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df)
                 st.rerun()
+
