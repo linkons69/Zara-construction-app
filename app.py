@@ -57,7 +57,7 @@ else:
             if st.form_submit_button("সাবমিট"):
                 new_row = pd.DataFrame([{"ID": len(df)+1, "Item": item, "Qty": qty, "Unit": unit, "Site": site, "Status": "Pending (PE Approval)", "Rate": 0, "Date": datetime.now().strftime("%d/%m/%Y"), "AddedBy": st.session_state.user}])
                 df = pd.concat([df, new_row], ignore_index=True)
-                conn.update(spreadsheet=SHEET_URL, data=df)
+               
                 st.success("সফলভাবে পাঠানো হয়েছে!")
                 st.rerun()
     else:
@@ -91,5 +91,6 @@ else:
             if st.button(f"✅ Received (ID {row['ID']})"):
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df); st.rerun()
+
 
 
