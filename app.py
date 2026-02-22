@@ -9,8 +9,7 @@ st.set_page_config(page_title="Supply Chain Pro", layout="wide")
 st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
 
 # ২. গুগল শীট কানেকশন (লিঙ্ক আপডেট করা হয়েছে)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ilP26HZxJ6PviYS_dvR9S4qyr62mIttO_32QUO6O2Ro/edit?usp=sharing" 
-conn = st.connection("gsheets", type=GSheetsConnection)
+
 
 try:
     df = conn.read(spreadsheet=SHEET_URL)
@@ -93,3 +92,4 @@ else:
             if st.button(f"✅ Received (ID {row['ID']})"):
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df); st.rerun()
+
