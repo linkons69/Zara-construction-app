@@ -1,5 +1,5 @@
 import streamlit as st
-from st_gsheets_connection import GSheetsConnection
+
 import pandas as pd
 from datetime import datetime
 
@@ -122,3 +122,4 @@ else:
                 df.at[idx, 'Status'] = "✅ Job Done"
                 conn.update(spreadsheet=SHEET_URL, data=df)
                 st.rerun()
+
