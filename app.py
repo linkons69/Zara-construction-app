@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from PIL import Image  # এখানে PIL সব বড় হাতের অক্ষরে হবেয
+from PIL import Image
 
 # ১. পেজ সেটিংস এবং ডিজাইন
-st.set_page_config(page_title="Supply Chain Pro", layout="wide", page_icon="🏗️")
+st.set_page_config(page_title="ZARA Supply Chain", layout="wide", page_icon="🏗️")
 
 st.markdown("""
     <style>
@@ -20,7 +20,7 @@ st.markdown("""
 
 # ২. ডাটা এবং ইমেজ ম্যানেজমেন্ট
 DB_FILE = "requisition_data.csv"
-IMAGE_DIR = "uploaded_images" # ছবি সেভ করার ফোল্ডার
+IMAGE_DIR = "uploaded_images"
 
 if not os.path.exists(IMAGE_DIR):
     os.makedirs(IMAGE_DIR)
@@ -28,14 +28,12 @@ if not os.path.exists(IMAGE_DIR):
 def load_data():
     if os.path.exists(DB_FILE):
         return pd.read_csv(DB_FILE)
-    # ছবির জন্য নতুন কলাম যোগ করা হয়েছে
     return pd.DataFrame(columns=["ID", "Item", "Qty", "Unit", "Site", "Status", "Rate", "Date", "AddedBy", "RequestImage", "ReceivedImage"])
 
 def save_data(data_df):
     data_df.to_csv(DB_FILE, index=False)
 
 def save_image(uploaded_file, prefix="req"):
-    # ইউনিক নাম দিয়ে ছবি সেভ করা
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_name = f"{prefix}_{timestamp}_{uploaded_file.name}"
     file_path = os.path.join(IMAGE_DIR, file_name)
@@ -43,11 +41,11 @@ def save_image(uploaded_file, prefix="req"):
         f.write(uploaded_file.getbuffer())
     return file_path
 
-st.title("🏗️ জারা কনস্ট্রাকশন সাপ্লাই চেইন (With Image Proof)")
+st.title("🏗️ জারা কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
 
 df = load_data()
 
-# ৩. ইউজার ডাটাবেস (পাসওয়ার্ড আপডেট)
+# ৩. ইউজার ডাটাবেস
 USERS = {
     "admin": {"pw": "admin123", "role": "CEO"},
     "Linkon": {"pw": "linkon123", "role": "Project Engineer"},
@@ -77,7 +75,6 @@ if not st.session_state.logged_in:
 else:
     user_role = st.session_state.role
     st.sidebar.markdown(f"### 👤 {st.session_state.user} ({user_role})")
-    
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
@@ -85,137 +82,99 @@ else:
     # --- ৫. সামারি মেট্রিক্স ---
     m1, m2, m3 = st.columns(3)
     m1.metric("মোট রিকুইজিশন", len(df))
-    m2.metric("পেন্ডিং অনুমোদন", len(df[df['Status'].str.contains('Pending|Waiting', na=False)]))
-    total_budget = (df['Rate'] * df['Qty']).sum()
+    pending_count = len(df[~df['Status'].str.contains('✅', na=False)])
+    m2.metric("পেন্ডিং কাজ", pending_count)
+    total_budget = (pd.to_numeric(df['Rate'], errors='coerce') * pd.to_numeric(df['Qty'], errors='coerce')).sum()
     m3.metric("মোট বাজেট (TK)", f"{int(total_budget):,}")
 
     st.divider()
 
     # --- ৬. রোল ভিত্তিক ইন্টারফেস ---
 
-    # ক. সাইট ইঞ্জিনিয়ার: রিকুইজিশন এবং ছবি আপলোড
     if user_role == "Site Engineer":
-        st.subheader("📋 নতুন মালামালের রিকুইজিশন")
+        st.subheader("📋 নতুন রিকুইজিশন তৈরি")
         with st.form("req_form", clear_on_submit=True):
             c1, c2 = st.columns(2)
             item = c1.text_input("মালামালের নাম")
             qty = c1.number_input("পরিমাণ", min_value=1)
             unit = c2.selectbox("ইউনিট", ["ব্যাগ", "টন", "ফিট", "পিস", "গাড়ি"])
             site = c2.text_input("সাইট লোকেশন")
+            uploaded_image = c1.file_uploader("সাইটের ছবি (অবশ্যই দিন)", type=["jpg", "jpeg", "png"])
             
-            # ছবির অপশন যোগ করা হয়েছে
-            uploaded_image = c1.file_uploader("সাইটের ছবি আপলোড করুন (বাধ্যতামূলক)", type=["jpg", "jpeg", "png"])
-            
-            if st.form_submit_button("সাবমিট করুন"):
+            if st.form_submit_button("সাবমিট"):
                 if not uploaded_image:
-                    st.error("ছবি ছাড়া রিকুইজিশন পাঠানো যাবে না।")
+                    st.error("ছবি ছাড়া রিকুইজিশন নেওয়া সম্ভব নয়।")
                 else:
-                    # ছবি সেভ করা
                     image_path = save_image(uploaded_image, prefix="req")
-                    
                     new_row = {
                         "ID": len(df)+1, "Item": item, "Qty": qty, "Unit": unit, 
                         "Site": site, "Status": "Pending (PE Approval)", 
                         "Rate": 0, "Date": datetime.now().strftime("%d/%m/%Y"), 
-                        "AddedBy": st.session_state.user,
-                        "RequestImage": image_path, # ছবির পাথ সেভ
-                        "ReceivedImage": None
+                        "AddedBy": st.session_state.user, "RequestImage": image_path, "ReceivedImage": None
                     }
                     df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
                     save_data(df)
-                    st.success("✅ ছবিসহ রিকুইজিশন পাঠানো হয়েছে!")
+                    st.success("সফলভাবে পাঠানো হয়েছে!")
                     st.balloons()
                     st.rerun()
 
-    # খ. প্রজেক্ট ইঞ্জিনিয়ার (PE): ছবি দেখে অনুমোদন
     elif user_role == "Project Engineer":
-        st.subheader("⚖️ PE অনুমোদন প্যানেল")
+        st.subheader("⚖️ PE অনুমোদন")
         pending_pe = df[df['Status'] == "Pending (PE Approval)"]
-        if not pending_pe.empty:
-            for idx, row in pending_pe.iterrows():
-                with st.expander(f"📦 ID: {row['ID']} - {row['Item']}"):
-                    st.write(f"পরিমাণ: {row['Qty']} {row['Unit']} | সাইট: {row['Site']}")
-                    # ছবি দেখানো
-                    if pd.notna(row['RequestImage']):
-                        st.image(row['RequestImage'], caption="সাইটের বাস্তব চিত্র", width=300)
-                    
-                    if st.button(f"Approve ID {row['ID']}", key=f"pe_{idx}"):
-                        df.at[idx, 'Status'] = "Sent to Purchase"
-                        save_data(df); st.rerun()
-        else: st.info("কোনো পেন্ডিং কাজ নেই।")
+        for idx, row in pending_pe.iterrows():
+            with st.expander(f"📦 ID: {row['ID']} - {row['Item']}"):
+                if pd.notna(row['RequestImage']): st.image(row['RequestImage'], width=300)
+                if st.button(f"Approve ID {row['ID']}", key=f"pe_{idx}"):
+                    df.at[idx, 'Status'] = "Sent to Purchase"
+                    save_data(df); st.rerun()
 
-    # গ. পারচেজ ডিপার্টমেন্ট
     elif user_role == "Purchase Dept":
-        st.subheader("💰 বাজার দর (Rate) এন্ট্রি")
+        st.subheader("💰 রেট এন্ট্রি")
         pending_pur = df[df['Status'] == "Sent to Purchase"]
-        if not pending_pur.empty:
-            for idx, row in pending_pur.iterrows():
-                with st.expander(f"🛒 ID: {row['ID']} - {row['Item']}"):
-                    st.write(f"সাইট: {row['Site']} | পরিমাণ: {row['Qty']}")
-                    # ছবি দেখানো (Optional)
-                    if pd.notna(row['RequestImage']):
-                        st.image(row['RequestImage'], width=200)
-                    
-                    rate = st.number_input(f"ইউনিট রেট (টাকা) - ID {row['ID']}", min_value=1.0, key=f"r_{idx}")
-                    if st.button("Confirm Rate", key=f"btn_{idx}"):
-                        df.at[idx, 'Rate'] = rate
-                        df.at[idx, 'Status'] = "Waiting for CEO Permission"
-                        save_data(df); st.rerun()
-        else: st.info("কোনো কাজ পেন্ডিং নেই।")
+        for idx, row in pending_pur.iterrows():
+            with st.expander(f"🛒 ID: {row['ID']} - {row['Item']}"):
+                rate = st.number_input(f"রেট (ID {row['ID']})", min_value=1.0, key=f"r_{idx}")
+                if st.button("Confirm", key=f"btn_{idx}"):
+                    df.at[idx, 'Rate'] = rate
+                    df.at[idx, 'Status'] = "Waiting for CEO Permission"
+                    save_data(df); st.rerun()
 
-    # ঘ. CEO প্যানেল: ছবি ও মোট দাম দেখে চূড়ান্ত অনুমোদন
     elif user_role == "CEO":
-        st.subheader("💎 চূড়ান্ত অনুমোদন (CEO)")
+        st.subheader("💎 চূড়ান্ত অনুমোদন")
         pending_ceo = df[df['Status'] == "Waiting for CEO Permission"]
-        if not pending_ceo.empty:
-            for idx, row in pending_ceo.iterrows():
-                total = row['Qty'] * row['Rate']
-                with st.container():
-                    st.warning(f"🔔 **ID {row['ID']}**: {row['Item']} - {row['Qty']} {row['Unit']} | মোট খরচ: **{total:,} TK**")
-                    # ছবি দেখানো
-                    if pd.notna(row['RequestImage']):
-                        st.image(row['RequestImage'], caption=f"সাইট: {row['Site']}", width=400)
-                    
-                    if st.button(f"চূড়ান্ত অনুমোদন দিন (ID {row['ID']})"):
-                        df.at[idx, 'Status'] = " Approved & Ready for Delivery"
-                        save_data(df); st.balloons(); st.rerun()
-        else: st.info("অনুমোদনের জন্য কোনো ফাইল নেই।")
+        for idx, row in pending_ceo.iterrows():
+            st.warning(f"ID {row['ID']}: {row['Item']} | মোট: {row['Qty']*row['Rate']:,} TK")
+            if pd.notna(row['RequestImage']): st.image(row['RequestImage'], width=300)
+            if st.button(f"Approve ID {row['ID']}", key=f"ceo_{idx}"):
+                df.at[idx, 'Status'] = "Approved & Ready for Delivery"
+                save_data(df); st.balloons(); st.rerun()
 
-    # --- ৭. ডেলিভারি ও রিসিভ (Site Engineer) ---
+    # মালামাল বুঝে পাওয়ার সেকশন (সাইট ইঞ্জিনিয়ারের জন্য)
     if user_role == "Site Engineer":
         st.divider()
-        st.subheader("✅ মালামাল বুঝে পাওয়ার কনফার্মেশন")
-        deliv = df[df['Status'] == " Approved & Ready for Delivery"]
+        st.subheader("🚚 মালামাল গ্রহণ (Delivery Received)")
+        deliv = df[df['Status'] == "Approved & Ready for Delivery"]
         for idx, row in deliv.iterrows():
-            with st.form(f"recv_{idx}"):
-                st.info(f"মালামাল: {row['Item']} | পরিমাণ: {row['Qty']} {row['Unit']}")
-                recv_image = st.file_uploader(f"মালামাল রিসিভ করার ছবি (ID {row['ID']})", type=["jpg", "png"], key=f"img_{idx}")
-                if st.form_submit_button("মালামাল বুঝে পেয়েছি"):
-                    if not recv_image:
-                        st.error("রিসিভ করার ছবি ছাড়া কনফার্ম করা যাবে না।")
-                    else:
-                        img_path = save_image(recv_image, prefix="recv")
-                        df.at[idx, 'ReceivedImage'] = img_path
+            with st.expander(f"মালামাল বুঝে নিন: {row['Item']}"):
+                recv_img = st.file_uploader(f"রিসিভ করার ছবি (ID {row['ID']})", type=["jpg", "png"], key=f"recv_{idx}")
+                if st.button(f"Confirm Delivery ID {row['ID']}", key=f"conf_{idx}"):
+                    if recv_img:
+                        df.at[idx, 'ReceivedImage'] = save_image(recv_img, prefix="recv")
                         df.at[idx, 'Status'] = "✅ Job Done"
                         save_data(df); st.balloons(); st.rerun()
+                    else: st.error("ছবি আপলোড করুন।")
 
-    # --- ৮. রিপোর্ট বোর্ড ---
+    # --- ৭. অল রিকুইজিশন বোর্ড (KeyError Fix) ---
     st.divider()
-    st.subheader("📊 অল রিকুইজিশন বোর্ড (উইথ ইমেজ প্রুফ)")
+    st.subheader("📊 অল ট্র্যাকিং বোর্ড")
     
-    # রিপোর্ট ডাটাফ্রেমে ছবির লিঙ্ক দেখানো (বা ছবি দেখানো সম্ভব নয়)
-    st.dataframe(df.drop(columns=['RequestImage', 'ReceivedImage']), use_container_width=True)
+    # এরর এড়াতে কলাম চেক করে ড্রপ করা
+    cols_to_show = df.columns.tolist()
+    for img_col in ['RequestImage', 'ReceivedImage']:
+        if img_col in cols_to_show:
+            cols_to_show.remove(img_col)
     
-    # কোডের ২০৭ নম্বর লাইনের আশেপাশে এটি পরিবর্তন করুন
-cols_to_drop = ['RequestImage', 'ReceivedImage']
-# যে কলামগুলো ফাইলে আছে শুধু সেগুলোই ড্রপ করবে
-existing_cols_to_drop = [c for c in cols_to_drop if c in df.columns]
-st.dataframe(df.drop(columns=existing_cols_to_drop), use_container_width=True)
-
-    # বিস্তারিত দেখার অপশন (যদি ছবির লিঙ্ক দেখতে চান)
-    # with st.expander("ছবির লিঙ্কসহ বিস্তারিত ডাটা দেখুন"):
-    #     st.dataframe(df)
-
-    # ডাউনলোড বাটন
+    st.dataframe(df[cols_to_show], use_container_width=True)
+    
     csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 ডাউনলোড রিপোর্ট (CSV)", data=csv, file_name=f"ZARA_Report_Image_{datetime.now().strftime('%d_%m_%y')}.csv", mime="text/csv")
+    st.download_button("📥 ডাউনলোড রিপোর্ট", data=csv, file_name="ZARA_Report.csv", mime="text/csv")
