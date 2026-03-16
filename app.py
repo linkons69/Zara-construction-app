@@ -16,7 +16,7 @@ def save_data(data_df):
 
 # ২. পেজ সেটআপ
 st.set_page_config(page_title="Supply Chain Automation", layout="wide")
-st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
+st.title("🏗️ জারা কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
 
 df = load_data()
 
