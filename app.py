@@ -2,7 +2,35 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+# কোডের শুরুতে (Import এর পর) এই CSS টি যোগ করুন
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f7f9;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 5px;
+        height: 3em;
+        background-color: #007bff;
+        color: white;
+    }
+    .stMetric {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+# CEO প্যানেলে অনুমোদন দিলে নিচের এই লাইনটি যোগ করুন
+if st.button(f"অনুমোদন দিন (ID {row['ID']})"):
+    df.at[idx, 'Status'] = "Approved"
+    save_data(df)
+    st.balloons() # এই এনিমেশনটি যোগ করুন
+    st.success("কাজটি অনুমোদিত হয়েছে! 🎊")
+    st.rerun()
 # ১. ফাইল পাথ ও ডাটা ম্যানেজমেন্ট
 DB_FILE = "requisition_data.csv"
 
