@@ -95,3 +95,19 @@ else:
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
+# ডাটা টেবিলের ঠিক উপরে এই অংশটুকু যোগ করুন
+st.divider()
+st.subheader("📊 সামারি রিপোর্ট")
+
+col1, col2, col3 = st.columns(3)
+col1.metric("মোট রিকুইজিশন", len(df))
+col2.metric("পেন্ডিং", len(df[df['Status'] == 'Pending']))
+col3.metric("মোট খরচ", f"{df['Rate'].sum() * df['Qty'].sum()} TK") # এটি একটি সাধারণ হিসাব
+
+# এক্সেল ডাউনলোড বাটন
+st.download_button(
+    label="📥 ডাউনলোড এক্সেল রিপোর্ট",
+    data=df.to_csv(index=False).encode('utf-8'),
+    file_name=f'requisition_report_{datetime.now().strftime("%d-%m-%y")}.csv',
+    mime='text/csv',
+)
