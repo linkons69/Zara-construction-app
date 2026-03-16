@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
-from pil import Image # ছবি প্রসেসিং এর জন্য
+from PIL import Image  # এখানে PIL সব বড় হাতের অক্ষরে হবেয
 
 # ১. পেজ সেটিংস এবং ডিজাইন
 st.set_page_config(page_title="Supply Chain Pro", layout="wide", page_icon="🏗️")
