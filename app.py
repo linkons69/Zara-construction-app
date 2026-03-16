@@ -203,9 +203,15 @@ else:
     st.divider()
     st.subheader("📊 অল রিকুইজিশন বোর্ড (উইথ ইমেজ প্রুফ)")
     
-    # রিপোর্ট ডাটাফ্রেমে ছবির লিঙ্ক দেখানো (বাছবি দেখানো সম্ভব নয়)
+    # রিপোর্ট ডাটাফ্রেমে ছবির লিঙ্ক দেখানো (বা ছবি দেখানো সম্ভব নয়)
     st.dataframe(df.drop(columns=['RequestImage', 'ReceivedImage']), use_container_width=True)
     
+    # কোডের ২০৭ নম্বর লাইনের আশেপাশে এটি পরিবর্তন করুন
+cols_to_drop = ['RequestImage', 'ReceivedImage']
+# যে কলামগুলো ফাইলে আছে শুধু সেগুলোই ড্রপ করবে
+existing_cols_to_drop = [c for c in cols_to_drop if c in df.columns]
+st.dataframe(df.drop(columns=existing_cols_to_drop), use_container_width=True)
+
     # বিস্তারিত দেখার অপশন (যদি ছবির লিঙ্ক দেখতে চান)
     # with st.expander("ছবির লিঙ্কসহ বিস্তারিত ডাটা দেখুন"):
     #     st.dataframe(df)
