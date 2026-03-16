@@ -1,57 +1,74 @@
 import streamlit as st
-from st_gsheets_connection import GSheetsConnection
 import pandas as pd
+import os
 from datetime import datetime
 
-# ১. পেজ সেটিংস
+# ১. ফাইল পাথ সেটআপ (এখানেই সব ডাটা জমা হবে)
+DB_FILE = "requisition_data.csv"
+
+# ২. ডাটা লোড করার ফাংশন
+def load_data():
+    if os.path.exists(DB_FILE):
+        return pd.read_csv(DB_FILE)
+    else:
+        # ফাইল না থাকলে নতুন কলাম তৈরি করবে
+        return pd.DataFrame(columns=["ID", "Item", "Qty", "Unit", "Site", "Status", "Date", "AddedBy"])
+
+# ৩. ডাটা সেভ করার ফাংশন
+def save_data(data_df):
+    data_df.to_csv(DB_FILE, index=False)
+
+# ৪. অ্যাপ ইন্টারফেস
 st.set_page_config(page_title="Supply Chain Pro", layout="wide")
-st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন অটোমেশন")
+st.title("🏗️ কনস্ট্রাকশন সাপ্লাই চেইন (Offline/Local Version)")
 
-# ২. গুগল শীট কানেকশন স্থাপন (এটি সবার উপরে থাকতে হবে)
-# এখানে আমরা conn অবজেক্টটি গ্লোবালি ডিফাইন করছি
-conn = st.connection("gsheets", type=GSheetsConnection)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ilP26HZxJ6PviYS_dvR9S4qyr62mIttO_32QUO6O2Ro/edit?usp=sharing"
+df = load_data()
 
-# ৩. ডাটা লোড করা
-try:
-    df = conn.read(spreadsheet=SHEET_URL)
-except Exception as e:
-    st.error(f"ডাটা লোড করা যাচ্ছে না: {e}")
-    df = pd.DataFrame(columns=["ID", "Item", "Qty", "Unit", "Site", "Status", "Rate", "Date", "AddedBy"])
-
-# ৪. লগইন চেক
+# ৫. সিম্পল লগইন
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    with st.form("login"):
-        u = st.text_input("User ID")
-        p = st.text_input("Password", type="password")
-        if st.form_submit_button("Login"):
-            if u == "site_shuvo" and p == "site456":
-                st.session_state.logged_in = True
-                st.session_state.user = u
-                st.rerun()
-            else: st.error("ভুল পাসওয়ার্ড!")
+    u = st.text_input("User ID")
+    p = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if u == "site_shuvo" and p == "site456":
+            st.session_state.logged_in = True
+            st.session_state.user = u
+            st.rerun()
+        else:
+            st.error("ভুল আইডি বা পাসওয়ার্ড!")
 else:
-    # ৫. ডাটা এন্ট্রি ফর্ম (এখানেই আপনার আগের এররটি আসছিল)
+    st.sidebar.success(f"ইউজার: {st.session_state.user}")
+    
+    # ৬. নতুন ডাটা এন্ট্রি
     st.header("📋 নতুন রিকুইজিশন পাঠান")
     with st.form("req_form"):
         item = st.text_input("মালামালের নাম")
         qty = st.number_input("পরিমাণ", min_value=1)
+        unit = st.selectbox("ইউনিট", ["ব্যাগ", "টন", "ফিট", "পিস"])
+        site = st.text_input("সাইট লোকেশন")
+        
         if st.form_submit_button("সাবমিট করুন"):
-            # নতুন ডাটা তৈরি
-            new_row = pd.DataFrame([{
-                "ID": len(df)+1, "Item": item, "Qty": qty, 
-                "Status": "Pending", "Date": datetime.now().strftime("%d/%m/%Y"),
+            new_row = {
+                "ID": len(df) + 1,
+                "Item": item,
+                "Qty": qty,
+                "Unit": unit,
+                "Site": site,
+                "Status": "Pending",
+                "Date": datetime.now().strftime("%d/%m/%Y"),
                 "AddedBy": st.session_state.user
-            }])
-            # ডাটা আপডেট
-            updated_df = pd.concat([df, new_row], ignore_index=True)
-            # আপডেটটি গুগল শীটে পাঠানো
-            conn.update(spreadsheet=SHEET_URL, data=updated_df)
-            st.success("সফলভাবে সেভ হয়েছে!")
+            }
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            save_data(df)
+            st.success("ডাটা লোকাল ফাইলে সেভ হয়েছে!")
             st.rerun()
 
     st.divider()
-    st.dataframe(df)
+    st.subheader("📊 অল ট্র্যাকিং বোর্ড")
+    st.dataframe(df, use_container_width=True)
+    
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
