@@ -21,14 +21,6 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
-
-# CEO প্যানেলে অনুমোদন দিলে নিচের এই লাইনটি যোগ করুন
-if st.button(f"অনুমোদন দিন (ID {row['ID']})"):
-    df.at[idx, 'Status'] = "Approved"
-    save_data(df)
-    st.balloons() # এই এনিমেশনটি যোগ করুন
-    st.success("কাজটি অনুমোদিত হয়েছে! 🎊")
-    st.rerun()
 from datetime import datetime
 
 # ১. ফাইল পাথ ও ডাটা ম্যানেজমেন্ট
