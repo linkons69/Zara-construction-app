@@ -42,11 +42,11 @@ df = load_data()
 
 # ৩. ইউজার রোল ও পাসওয়ার্ড সেটআপ
 USERS = {
-    "admin": {"pw": "admin786", "role": "CEO"},
-    "pe_rakib": {"pw": "pe123", "role": "Project Engineer"},
+    "admin": {"pw": "admin123", "role": "CEO"},
+    "Linkon": {"pw": "linkon123", "role": "Project Engineer"},
     "site_shuvo": {"pw": "site456", "role": "Site Engineer"},
     "enam": {"pw": "enam123", "role": "Site Engineer"},
-    "pur_korim": {"pw": "pur789", "role": "Purchase Dept"},
+    "Rovi": {"pw": "rovi123", "role": "Purchase Dept"},
 }
 
 if 'logged_in' not in st.session_state:
