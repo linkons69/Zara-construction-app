@@ -32,7 +32,7 @@ if not st.session_state.logged_in:
     u = st.text_input("User ID")
     p = st.text_input("Password", type="password")
     if st.button("Login"):
-        if u == "site_shuvo" and p == "site456":
+        if u == "Linkon" and p == "1234":
             st.session_state.logged_in = True
             st.session_state.user = u
             st.rerun()
