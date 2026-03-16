@@ -25,6 +25,7 @@ USERS = {
     "admin": {"pw": "admin786", "role": "CEO"},
     "pe_rakib": {"pw": "pe123", "role": "Project Engineer"},
     "site_shuvo": {"pw": "site456", "role": "Site Engineer"},
+    "enam": {"pw": "enam123", "role": "Site Engineer"},
     "pur_korim": {"pw": "pur789", "role": "Purchase Dept"},
 }
 
